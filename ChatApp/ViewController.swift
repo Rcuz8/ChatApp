@@ -28,8 +28,8 @@ class ViewController: UIViewController {
         loginButton.layer.cornerRadius = 6
         createAccountButton.layer.cornerRadius = 6
         
-        loginButton.layer.borderColor = UIColor.blackColor().CGColor
-        createAccountButton.layer.borderColor = UIColor.blackColor().CGColor
+        loginButton.layer.borderColor = UIColor.black.cgColor
+        createAccountButton.layer.borderColor = UIColor.black.cgColor
         
         loginButton.layer.borderWidth = 4
         createAccountButton.layer.borderWidth = 4
@@ -38,11 +38,11 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
     }
     
-    @IBAction func login(sender: AnyObject) {
+    @IBAction func login(_ sender: AnyObject) {
         
         if emailField.text != nil && emailField.text != "" && passField.text != nil && passField.text != "" {
         
-        FIRAuth.auth()?.signInWithEmail(emailField.text!, password: passField.text!, completion: { (user: FIRUser?, error: NSError?) in
+        FIRAuth.auth()?.signIn(withEmail: emailField.text!, password: passField.text!, completion: { (user: FIRUser?, error: Error?) in
             if error != nil {
                 print(error!.localizedDescription)
             } else {
@@ -56,17 +56,17 @@ class ViewController: UIViewController {
         }
     }
     
-    func displayMessage(msg: String, title: String) -> Void {
-        let ac = UIAlertController(title: title, message: msg, preferredStyle: .Alert)
-        let ok = UIAlertAction(title: "Ok", style: .Default, handler: nil)
+    func displayMessage(_ msg: String, title: String) -> Void {
+        let ac = UIAlertController(title: title, message: msg, preferredStyle: .alert)
+        let ok = UIAlertAction(title: "Ok", style: .default, handler: nil)
         ac.addAction(ok)
-        self.presentViewController(ac, animated: true, completion: nil)
+        self.present(ac, animated: true, completion: nil)
     }
     
-    func goTo(viewController: String) {
-        let vc = self.storyboard?.instantiateViewControllerWithIdentifier(viewController)
+    func goTo(_ viewController: String) {
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: viewController)
         if vc != nil {
-            self.presentViewController(vc!, animated: true, completion: nil)
+            self.present(vc!, animated: true, completion: nil)
         }
     }
 

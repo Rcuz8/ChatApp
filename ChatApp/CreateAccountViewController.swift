@@ -30,7 +30,7 @@ class CreateAccountViewController: UIViewController {
         
         createAccountButton.layer.cornerRadius = 6
        
-        createAccountButton.layer.borderColor = UIColor.blackColor().CGColor
+        createAccountButton.layer.borderColor = UIColor.black.cgColor
         
         createAccountButton.layer.borderWidth = 4
 
@@ -42,10 +42,11 @@ class CreateAccountViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func createAccount(sender: AnyObject) {
+    @IBAction func createAccount(_ sender: AnyObject) {
         if checkFields() {
             // Create an Account
-            FIRAuth.auth()?.createUserWithEmail(emailField.text!, password: passwordField.text!, completion: { (user: FIRUser?, error: NSError?) in
+            
+            FIRAuth.auth()?.createUser(withEmail: emailField.text!, password: passwordField.text!, completion: { (user: FIRUser?, error:Error?) in
                 if error != nil {
                     print(error!.localizedDescription)
                 } else {
@@ -59,10 +60,13 @@ class CreateAccountViewController: UIViewController {
                     self.displaySuccessMessage("You can now use the Chat App!", title: "Welcome, \(self.firstNamefield.text!)")
                     
                     
-                  
+                    
                     
                 }
             })
+            
+            
+            
         }
     }
     
@@ -74,10 +78,10 @@ class CreateAccountViewController: UIViewController {
         }
     }
 
-    func goTo(viewController: String) {
-        let vc = self.storyboard?.instantiateViewControllerWithIdentifier(viewController)
+    func goTo(_ viewController: String) {
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: viewController)
         if vc != nil {
-        self.presentViewController(vc!, animated: true, completion: nil)
+        self.present(vc!, animated: true, completion: nil)
         }
     }
   
@@ -85,27 +89,27 @@ class CreateAccountViewController: UIViewController {
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
         
     }
     
-    func displayMessage(msg: String, title: String) -> Void {
-        let ac = UIAlertController(title: title, message: msg, preferredStyle: .Alert)
-        let ok = UIAlertAction(title: "Ok", style: .Default, handler: nil)
+    func displayMessage(_ msg: String, title: String) -> Void {
+        let ac = UIAlertController(title: title, message: msg, preferredStyle: .alert)
+        let ok = UIAlertAction(title: "Ok", style: .default, handler: nil)
         ac.addAction(ok)
-        self.presentViewController(ac, animated: true, completion: nil)
+        self.present(ac, animated: true, completion: nil)
     }
     
-    func displaySuccessMessage(msg: String, title: String) -> Void {
-        let ac = UIAlertController(title: title, message: msg, preferredStyle: .Alert)
-        let ok = UIAlertAction(title: "Ok", style: .Default) {
+    func displaySuccessMessage(_ msg: String, title: String) -> Void {
+        let ac = UIAlertController(title: title, message: msg, preferredStyle: .alert)
+        let ok = UIAlertAction(title: "Ok", style: .default) {
             (action: UIAlertAction) in
             self.goTo("login")
         }
         ac.addAction(ok)
-        self.presentViewController(ac, animated: true, completion: nil)
+        self.present(ac, animated: true, completion: nil)
     }
     
     

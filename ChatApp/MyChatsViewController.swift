@@ -33,33 +33,59 @@ class MyChatsViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         myChatsLabel.layer.cornerRadius = 6
         
-        myChatsLabel.layer.borderColor = UIColor.whiteColor().CGColor
+        myChatsLabel.layer.borderColor = UIColor.white.cgColor
         
         myChatsLabel.layer.borderWidth = 4
         
         newChatButton.layer.cornerRadius = 6
         
-        newChatButton.layer.borderColor = UIColor.blackColor().CGColor
+        newChatButton.layer.borderColor = UIColor.black.cgColor
         
         newChatButton.layer.borderWidth = 4
         
         if let id = FIRAuth.auth()?.currentUser?.uid {
             
-            self.firebase.child("Users").child(id).child("CHATS").observeSingleEventOfType(.Value, withBlock: { (snapshot: FIRDataSnapshot) in
+            self.firebase.child("Users").child(id).child("CHATS").observeSingleEvent(of: .value, with: { (snapshot: FIRDataSnapshot) in
+                if let snapVal = snapshot.value as? [String: AnyObject] {
+                    for chat in snapVal {
+                        
+                      //  let chatAsObject = chat
+                        let chatString = chat.key
+                        self.listOfIDs.append(chatString)
+                        self.firebase.child("Chats").child(chatString).child("MEMBERS").observeSingleEvent(of: .value, with: { (snap: FIRDataSnapshot) in
+                            if let snapV = snap.value as? [String: AnyObject] {
+                            if snap.childrenCount > 1 {
+                                for member in snapV {
+                                    let userID = member.key
+                                    // let userID = member.value["ID"] as! String
+                                    if id != userID {
+                                        if let name = member.value["NAME"] as? String {
+                                        self.listOfChatNames.append(name)
+                                        }
+                                    }
+                                }
+                            }
+                            self.tableView.reloadData()
+                            }
+                        })
+                    }
+                }
+                /*      OLDDDDDD
                 if snapshot.hasChildren() {
                     
                     for chat in snapshot.children {
                         
-                        let chatAsObject = chat as! AnyObject
+                        let chatAsObject = chat as AnyObject
                         let chatString = chatAsObject.key!
                        self.listOfIDs.append(chatAsObject.key!)
-                        self.firebase.child("Chats").child(chatString).child("MEMBERS").observeSingleEventOfType(.Value, withBlock: { (snap: FIRDataSnapshot) in
+                        self.firebase.child("Chats").child(chatString).child("MEMBERS").observeSingleEvent(of: .value, with: { (snap: FIRDataSnapshot) in
+                            
                             if snap.childrenCount > 1 {
                                 for member in snap.children {
-                                   let userID = member.key!
+                                   let userID = (member as AnyObject).key!
                                    // let userID = member.value["ID"] as! String
                                     if id != userID {
-                                        let name = member.value!["NAME"] as! String
+                                        let name = (member as AnyObject).value!["NAME"] as! String
                                         self.listOfChatNames.append(name)
                                     }
                                 }
@@ -69,6 +95,7 @@ class MyChatsViewController: UIViewController, UITableViewDelegate, UITableViewD
                     }
                     
                 }
+                */
             })
             
         }
@@ -82,8 +109,8 @@ class MyChatsViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = self.tableView.dequeueReusableCellWithIdentifier("myChatsCell") as! ChatTableViewCell
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = self.tableView.dequeueReusableCell(withIdentifier: "myChatsCell") as! ChatTableViewCell
         cell.name.text = listOfChatNames[indexPath.row]
         cell.contentView.layer.cornerRadius = 5
         cell.viewWithTag(0)?.layer.cornerRadius = 5
@@ -91,21 +118,21 @@ class MyChatsViewController: UIViewController, UITableViewDelegate, UITableViewD
         
     }
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
         
         let activeID = listOfIDs[indexPath.row]
-        let vc = self.storyboard?.instantiateViewControllerWithIdentifier("Messages") as! MessageViewController
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: "Messages") as! MessageViewController
         vc.chatID = activeID
         
         vc.otherMemberName = listOfChatNames[indexPath.row]
-        self.presentViewController(vc, animated: true, completion: nil)
+        self.present(vc, animated: true, completion: nil)
         
         
       
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return listOfChatNames.count
     }
 

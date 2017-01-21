@@ -40,63 +40,105 @@ class CreateChatViewController: UIViewController {
         
         enterLabel.layer.cornerRadius = 6
         
-        enterLabel.layer.borderColor = UIColor.blackColor().CGColor
+        enterLabel.layer.borderColor = UIColor.black.cgColor
         
         enterLabel.layer.borderWidth = 4
         
         createChatButton.layer.cornerRadius = 6
         
-        createChatButton.layer.borderColor = UIColor.blackColor().CGColor
+        createChatButton.layer.borderColor = UIColor.black.cgColor
         
         createChatButton.layer.borderWidth = 4
         
         // Do any additional setup after loading the view.
     }
     
-    @IBAction func editingChanged(sender: AnyObject) {
+    @IBAction func editingChanged(_ sender: AnyObject) {
+        
+        
+        var found = false
+        
         
         if let text = emailField.text {
             
+            if text == "" {
+                print("Text is nil")
+            } else {
            // var found: Bool! // represents whether or not we have found the matching user
-            var found = false
+            print("Not nil")
             
-            self.firebase.child("Users").observeSingleEventOfType(.Value, withBlock: { (snap: FIRDataSnapshot) in
-                
-                for child in snap.children {
-                    if child.hasChild("EMAIL") {
-                        let email =  child.value!["EMAIL"] as! String
+            self.firebase.child("Users").observeSingleEvent(of: .value, with: { (snap: FIRDataSnapshot) in
+                // NEWWWW
+                print("Not nil")
+                if let snapVal = snap.value as? [String: AnyObject] {
+                    print("Found SnapVal")
+                    for child in snapVal as [String: AnyObject]{
+                    print("\nChild info: \(child)")
+                    
+                //    if let childDict = child as? [String: AnyObject] {
+                        print("\(child)")
+                    if child.value["EMAIL"] != nil {
+                        if let email = child.value["EMAIL"] as? String {
+                            if email.lowercased() == text.lowercased() { // User matches the User's email entered into the textfield
+                                if let fname = child.value["FIRST_NAME"] as? String {
+                                    if let lname = child.value["LAST_NAME"] as? String {
+                                        found = true
+                                        let fname = child.value["FIRST_NAME"] as! String
+                                        let lname = child.value["LAST_NAME"] as! String
+                                        self.activeName = "\(fname) \(lname)"
+                                        self.activeName = self.activeName!
+                                        let key = child.key
+                                        self.activeID = key
+                                        self.activeID = self.activeID!
+                                   //     self.activeEmail
+                                        print("\n\n\n\n\n\nFOUND\n\n\n\n\n")
+                                    }
+                                }
+
+                            }
+                        }
+                 //   }
+                    }
+                    // END NEWWWW
+                    /*
+                    if (child as AnyObject).hasChild("EMAIL") {
+                        let email =  (child as AnyObject).value!["EMAIL"] as! String
                         
                         if email == text { // User matches the User's email entered into the textfield
                             found = true
-                            let fname = child.value!["FIRST_NAME"] as! String
-                            let lname = child.value!["LAST_NAME"] as! String
+                            let fname = (child as AnyObject).value!["FIRST_NAME"] as! String
+                            let lname = (child as AnyObject).value!["LAST_NAME"] as! String
                             self.activeName = "\(fname) \(lname)"
                             
-                            self.activeID = child.key!
+                            self.activeID = (child as AnyObject).key!
                             
                         }
                         
                     }
+                    */
+                }
+                }
+                if found { // means that user has been found
+                    print("\n\nCheckLabel should update!\n\n")
+                    self.checkLabel.text = "✅"
+                    self.isValid = true
+                } else {
+                    self.checkLabel.text = "❌"
+                    self.isValid = false
                 }
                 
+                self.activeEmail = text
             })
+        }
             
-            if found { // means that user has been found
-                self.checkLabel.text = "✅"
-                self.isValid = true
-            } else {
-                self.checkLabel.text = "❌"
-                self.isValid = false
-            }
-            
-            self.activeEmail = text
+           
             
         }
         
     }
    
     
-    @IBAction func createChat(sender: AnyObject) {
+    @IBAction func createChat(_ sender: AnyObject) {
         
         
         if let valid = self.isValid {
@@ -106,29 +148,49 @@ class CreateChatViewController: UIViewController {
                 
                 if let id = FIRAuth.auth()?.currentUser?.uid {
                     
+                    if let aName = self.activeName {
+                        
+                        if let aID = self.activeID {
+                            
+                            if let aEmail = self.activeEmail {
+                    
+                    
                     // Get User info
                     
-                    self.firebase.child("Users").child("\(id)").observeSingleEventOfType(.Value, withBlock: { (snap: FIRDataSnapshot) in
-                        
-                        let myFirstName = snap.value!["FIRST_NAME"] as! String
-                        let myLastName = snap.value!["LAST_NAME"] as! String
-                        let myEmail = snap.value!["EMAIL"] as! String
-                        
+                    self.firebase.child("Users").child("\(id)").observeSingleEvent(of: .value, with: { (snap: FIRDataSnapshot) in
+                        if let snapVal = snap.value as? [String: AnyObject] {
+                        let myFirstName = snapVal["FIRST_NAME"] as! String
+                        let myLastName = snapVal["LAST_NAME"] as! String
+                        let myEmail = snapVal["EMAIL"] as! String
+                        print("My Credentials: \nFirst Name: \(myFirstName)\nLast Name: \(myLastName)\nEmail: \(myEmail)\nID: \(id)")
+                        print("Other User's Credentials: \nName: \(self.activeName)\nEmail: \(self.activeEmail)\nID: \(self.activeID)")
                         self.firebase.child("Chats").child(chadID).child("MEMBERS").child(id).child("NAME").setValue("\(myFirstName) \(myLastName)")
                         
-                        self.firebase.child("Chats").child(chadID).child("MEMBERS").child(self.activeID).child("NAME").setValue(self.activeName)
+                        self.firebase.child("Chats").child(chadID).child("MEMBERS").child(aID).child("NAME").setValue(aName)
                         
                         self.firebase.child("Chats").child(chadID).child("MEMBERS").child(id).child("EMAIL").setValue(myEmail)
                         
-                        self.firebase.child("Chats").child(chadID).child("MEMBERS").child(self.activeID).child("EMAIL").setValue(self.activeEmail)
+                        self.firebase.child("Chats").child(chadID).child("MEMBERS").child(aID).child("EMAIL").setValue(aEmail)
                         
                         self.firebase.child("Users").child(id).child("CHATS").child(chadID).setValue("ACTIVE")
                         
-                        self.firebase.child("Users").child(self.activeID).child("CHATS").child(chadID).setValue("ACTIVE")
+                        self.firebase.child("Users").child(aID).child("CHATS").child(chadID).setValue("ACTIVE")
                         
                         // Display Successful Message
                         self.displayMessage(true)
+                        }
                     })
+                    
+                    
+                    // **
+                    
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    // **
                     
                 }
             } else {
@@ -140,31 +202,31 @@ class CreateChatViewController: UIViewController {
         
     }
     
-    func displayMessage(successful: Bool) {
+    func displayMessage(_ successful: Bool) {
         
         if successful {
-            let ac = UIAlertController(title: "Chat Created!", message: "Your new chat has been created!", preferredStyle: .Alert)
-            let ok = UIAlertAction(title: "Ok", style: .Default, handler: { (UIAlertAction) in
+            let ac = UIAlertController(title: "Chat Created!", message: "Your new chat has been created!", preferredStyle: .alert)
+            let ok = UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) in
                 // Switch view
                 self.goTo("Chats")
             })
             ac.addAction(ok)
-            self.presentViewController(ac, animated: true, completion: nil)
+            self.present(ac, animated: true, completion: nil)
         } else {
-            let ac = UIAlertController(title: "Error in email field!", message: "Please re-enter the email address!", preferredStyle: .Alert)
-            let ok = UIAlertAction(title: "Ok", style: .Default, handler: { (UIAlertAction) in
+            let ac = UIAlertController(title: "Error in email field!", message: "Please re-enter the email address!", preferredStyle: .alert)
+            let ok = UIAlertAction(title: "Ok", style: .default, handler: { (UIAlertAction) in
               
             })
             ac.addAction(ok)
-            self.presentViewController(ac, animated: true, completion: nil)
+            self.present(ac, animated: true, completion: nil)
         }
         
     }
     
-    func goTo(viewController: String) {
-        let vc = self.storyboard?.instantiateViewControllerWithIdentifier(viewController)
+    func goTo(_ viewController: String) {
+        let vc = self.storyboard?.instantiateViewController(withIdentifier: viewController)
         if vc != nil {
-        self.presentViewController(vc!, animated: true, completion: nil)
+        self.present(vc!, animated: true, completion: nil)
         }
     }
 
